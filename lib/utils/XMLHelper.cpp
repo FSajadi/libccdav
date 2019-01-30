@@ -56,7 +56,7 @@ QList<CardDAVResponseItem *> XMLHelper::parseCardDAVMultiStatusResponse(
                  .toElement()
                  .text();
 
-      item->setContact(new Contact(vCard, eTag, href));
+      item->setContact(new Contact(vCard, eTag, QUrl(href)));
     } else {
       item->setIsContact(false);
     }

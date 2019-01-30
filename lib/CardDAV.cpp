@@ -19,6 +19,10 @@ CardDAVReply* CardDAV::testConnection() {
   testReply = this->networkHelper->makeRequest("PROPFIND", headers);
 
   this->connect(testReply, &QNetworkReply::finished, [=]() {
+    if (testReply->error()) {
+      reply->sendTestConnectionResponseSignal(false);
+      reply->sendError(testReply->error());
+    }
     bool found = false;
     QList<CardDAVResponseItem*> responseList =
         this->xmlHelper->parseCardDAVMultiStatusResponse(testReply->readAll());
@@ -50,6 +54,7 @@ CardDAVReply* CardDAV::testConnection() {
       QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
       [=](QNetworkReply::NetworkError err) {
         reply->sendTestConnectionResponseSignal(false);
+        reply->sendError(err);
       });
 
   return reply;
@@ -99,16 +104,40 @@ CardDAVReply* CardDAV::createContact(QString uid, QString vCard,
   CardDAVReply* reply = new CardDAVReply();
   QMap<QString, QString> headers;
   QNetworkReply* createReply;
+  QUrl contactUrl(this->host + "/" + uid + ".vcf");
 
   if (!shouldOverwrite) {
     headers.insert("If-None-Match", "*");
   }
 
-  createReply = this->networkHelper->makeRequest("PUT", QUrl(uid + ".vcf"),
-                                                 headers, vCard);
+  createReply =
+      this->networkHelper->makeRequest("PUT", contactUrl, headers, vCard);
 
-  this->connect(createReply, &QNetworkReply::finished,
-                [=]() { reply->sendCreateContactResponseSignal(); });
+  this->connect(createReply, &QNetworkReply::finished, [=]() {
+    if (createReply->error()) {
+      reply->sendError(createReply->error());
+    } else {
+      QMap<QString, QString> getContactHeaders;
+      QNetworkReply* getContactReply = this->networkHelper->makeRequest(
+          "GET", contactUrl.path(), getContactHeaders, "");
+      this->connect(getContactReply, &QNetworkReply::finished, [=]() {
+        if (getContactReply->error()) {
+          reply->sendError(getContactReply->error());
+        } else {
+          QString vCard = getContactReply->readAll();
+          QString etag(getContactReply->rawHeader("ETag"));
+
+          reply->sendCreateContactResponseSignal(
+              new Contact(vCard, etag, QUrl(contactUrl.path())));
+        }
+      });
+
+      this->connect(
+          getContactReply,
+          QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+          [=](QNetworkReply::NetworkError err) { reply->sendError(err); });
+    }
+  });
 
   this->connect(
       createReply,
@@ -127,13 +156,39 @@ CardDAVReply* CardDAV::updateContact(QUrl href, QString vCard, QString etag) {
 
   updateReply = this->networkHelper->makeRequest("PUT", href, headers, vCard);
 
-  this->connect(updateReply, &QNetworkReply::finished,
-                [=]() { reply->sendUpdateContactResponseSignal(); });
+  this->connect(updateReply, &QNetworkReply::finished, [=]() {
+    if (updateReply->error()) {
+      reply->sendError(updateReply->error());
+    } else {
+      QMap<QString, QString> getContactHeaders;
+      QNetworkReply* getContactReply =
+          this->networkHelper->makeRequest("GET", href, getContactHeaders, "");
+      this->connect(getContactReply, &QNetworkReply::finished, [=]() {
+        if (getContactReply->error()) {
+          reply->sendError(getContactReply->error());
+        } else {
+          QString vCard = getContactReply->readAll();
+          QString etag(getContactReply->rawHeader("ETag"));
+
+          reply->sendUpdateContactResponseSignal(
+              new Contact(vCard, etag, href));
+        }
+      });
+
+      this->connect(
+          getContactReply,
+          QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+          [=](QNetworkReply::NetworkError err) { reply->sendError(err); });
+    }
+  });
 
   this->connect(
       updateReply,
       QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
-      [=](QNetworkReply::NetworkError err) { reply->sendError(err); });
+      [=](QNetworkReply::NetworkError err) {
+        qDebug() << updateReply->readAll();
+        reply->sendError(err);
+      });
 
   return reply;
 }
@@ -144,8 +199,13 @@ CardDAVReply* CardDAV::deleteContact(QUrl href) {
   QNetworkReply* deleteReply =
       this->networkHelper->makeRequest("DELETE", href, headers, "");
 
-  this->connect(deleteReply, &QNetworkReply::finished,
-                [=]() { reply->sendDeleteContactResponseSignal(); });
+  this->connect(deleteReply, &QNetworkReply::finished, [=]() {
+    if (deleteReply->error()) {
+      reply->sendError(deleteReply->error());
+    } else {
+      reply->sendDeleteContactResponseSignal();
+    }
+  });
 
   this->connect(
       deleteReply,

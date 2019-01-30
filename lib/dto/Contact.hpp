@@ -2,19 +2,20 @@
 #define DTO_CONTACT_HPP
 
 #include <QString>
+#include <QUrl>
 
 class Contact {
-  public:
-    Contact(QString vCard, QString eTag, QString href);
+ public:
+  Contact(QString vCard, QString eTag, QUrl href);
 
-    QString getVcard();
-    QString getEtag();
-    QString getHref();
+  QString getVcard();
+  QString getEtag();
+  QUrl getHref();
 
-  private:
-    QString vCard;
-    QString eTag;
-    QString href;
+ private:
+  QString vCard;
+  QString eTag;
+  QUrl href;
 };
 
 #endif

@@ -24,9 +24,9 @@ QNetworkReply* NetworkHelper::makeRequest(QString method, QUrl path,
                                           QString body) {
   QUrl url(this->host);
   QString port = url.port() != -1 ? ":" + QString::number(url.port()) : "";
+  QUrl requestUrl(url.scheme() + "://" + url.host() + port + "/" + path.path());
 
-  QNetworkRequest request(
-      QUrl(url.scheme() + "://" + url.host() + port + "/" + path.path()));
+  QNetworkRequest request(requestUrl);
 
   this->setRequestAuthHeader(&request);
   this->setRequestHeaders(&request, headers);

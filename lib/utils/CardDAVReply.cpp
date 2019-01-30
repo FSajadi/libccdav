@@ -8,12 +8,12 @@ void CardDAVReply::sendListContactsResponseSignal(QList<Contact *> contacts) {
   emit listAllContactsResponse(contacts);
 }
 
-void CardDAVReply::sendCreateContactResponseSignal() {
-  emit createContactResponse();
+void CardDAVReply::sendCreateContactResponseSignal(Contact *contact) {
+  emit createContactResponse(contact);
 }
 
-void CardDAVReply::sendUpdateContactResponseSignal() {
-  emit updateContactResponse();
+void CardDAVReply::sendUpdateContactResponseSignal(Contact *contact) {
+  emit updateContactResponse(contact);
 }
 
 void CardDAVReply::sendDeleteContactResponseSignal() {
