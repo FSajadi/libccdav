@@ -50,18 +50,20 @@ target_link_libraries(
     Qt5::Xml
 )
 ###
-
 # Set Flags for Library
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  PUBLIC_HEADER "CardDAV.hpp;CalDAV.hpp;dto/CardDAVItem.hpp;dto/CalDAVItem.hpp;utils/WebDAVReply.hpp"
-)
+
 ###
 
 # Set Installables
 install(
     TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${HEADERS_INSTALL_DIR}
 )
-###
+
+
+install(FILES   CardDAV.hpp CalDAV.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES   dto/CardDAVResponseItem.hpp dto/Contact.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR}/dto)
+install(FILES   utils/CardDAVReply.hpp utils/Environment.hpp utils/NetworkHelper.hpp utils/XMLHelper.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR}/utils)
+
+#
