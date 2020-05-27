@@ -62,8 +62,8 @@ install(
 )
 
 
-install(FILES   CardDAV.hpp CalDAV.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(FILES   dto/CardDAVResponseItem.hpp dto/Contact.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR}/dto)
-install(FILES   utils/CardDAVReply.hpp utils/Environment.hpp utils/NetworkHelper.hpp utils/XMLHelper.hpp DESTINATION ${CMAKE_INSTALL_LIBDIR}/utils)
+install(FILES   CardDAV.hpp CalDAV.hpp DESTINATION ${HEADERS_INSTALL_DIR})
+install(FILES   dto/CardDAVResponseItem.hpp dto/Contact.hpp DESTINATION ${HEADERS_INSTALL_DIR}/dto)
+install(FILES   utils/CardDAVReply.hpp utils/Environment.hpp utils/NetworkHelper.hpp utils/XMLHelper.hpp DESTINATION ${HEADERS_INSTALL_DIR}/utils)
 
 #
